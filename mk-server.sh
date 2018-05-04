@@ -28,6 +28,7 @@ RUN ln -s /tmp/jboss /usr/share/jboss/server/all/tmp
 
 ENV LAUNCH_JBOSS_IN_BACKGROUND=1
 ENV TZ=Europe/Copenhagen
+ENV JAVA_OPTS=-Djava.rmi.server.hostname=localhost
 
 USER jboss
 WORKDIR /usr/share/jboss
@@ -41,7 +42,7 @@ docker build -t jboss-4.2 image/
 
 echo
 echo "# to run in Docker:"
-echo "docker run -it --rm --name=JBoss-Test -p 8080:8080 -p 1099:1099 jboss-4.2"
+echo "docker run -it --rm --name=JBoss-Test -p 8080:8080 -p 1098-1099:1098-1099 jboss-4.2"
 echo
 echo "# to run on host:"
 echo "./image/jboss-4.2.3.GA/bin/run.sh -c all -b 0.0.0.0"
