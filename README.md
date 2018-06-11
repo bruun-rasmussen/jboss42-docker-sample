@@ -5,11 +5,14 @@ To exercise, first build a basic JBoss 4.2 image by running the `./mk-server.sh`
 
 Then launch an instance of the image:
 ```
-docker run -it --rm -p 8080:8080 -p 1099:1099 jboss-4.2
+docker run -i -t --rm \
+  -p 1098-1099:1098-1099 -p 8080:8080 \
+  -e JAVA_OPTS=-Djava.rmi.server.hostname=$(hostname -f) \
+  jboss-4.2
 ```
 Once up and running, in another terminal, try to access one of the sample services with [JBossClientTest.java](src/main/java/dk/br/JBossClientTest.java):
 ```
-mvn compile exec:java
+mvn compile exec:java -Djava.naming.provider.url=$(hostname -f):1099
 ```
 To see the intended behavior, stop the container with (Ctrl-C) and launch a regular server instead:
 ```
