@@ -1,12 +1,13 @@
 #!/bin/sh
 
 # fetch and unpack vanilla JBoss-4.2.3.GA distribution:
-wget -N https://kent.dl.sourceforge.net/project/jboss/JBoss/JBoss-4.2.3.GA/jboss-4.2.3.GA.zip
-rm -rvf ./image
-unzip -d ./image -u jboss-4.2.3.GA.zip
+mkdir -pv ./build/download
+wget -P ./build/download -N https://kent.dl.sourceforge.net/project/jboss/JBoss/JBoss-4.2.3.GA/jboss-4.2.3.GA.zip
+rm -rvf ./build/image
+unzip -d ./build/image -u ./build/download/jboss-4.2.3.GA.zip
 
 # generate alpine based image:
-cat > image/Dockerfile <<EOD
+cat > ./build/image/Dockerfile <<EOD
 FROM alpine:3.7
 RUN apk add --update ca-certificates && update-ca-certificates
 RUN apk add --update tzdata
@@ -29,21 +30,22 @@ RUN ln -s /tmp/jboss /usr/share/jboss/server/all/tmp
 ENV LAUNCH_JBOSS_IN_BACKGROUND=1
 ENV TZ=Europe/Copenhagen
 ENV JAVA_OPTS=-Djava.rmi.server.hostname=localhost
+ENV BIND_IP=0.0.0.0
 
 USER jboss
 WORKDIR /usr/share/jboss
-CMD bin/run.sh -c all -b 0.0.0.0
+CMD bin/run.sh -c all -b \$BIND_IP
 
-EXPOSE 1098 1099 1100 1101 1102 8080 8443
+EXPOSE 1098-1102 8080-8099 8443
 EOD
 
 # build...
-docker build -t jboss-4.2 image/
+docker build -t jboss-4.2 ./build/image/
 
 echo
 echo "# to run in Docker:"
-echo "docker run -it --rm --name=JBoss-Test -p 8080:8080 -p 1098-1099:1098-1099 jboss-4.2"
+echo "docker run -i -t --rm -p 8080-8099:8080-8099 -p 1098-1102:1098-1102 -e JAVA_OPTS=-Djava.rmi.server.hostname=\$(hostname -f) jboss-4.2"
 echo
 echo "# to run on host:"
-echo "./image/jboss-4.2.3.GA/bin/run.sh -c all -b 0.0.0.0"
+echo "./build/image/jboss-4.2.3.GA/bin/run.sh -c all -b 0.0.0.0"
 echo
